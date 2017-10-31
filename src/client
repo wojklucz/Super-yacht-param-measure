@@ -1,0 +1,37 @@
+import threading
+import socket
+import os.path
+import serial
+import time
+
+class socket_client(threading.Thread):
+    MYPORT = 50000
+    BUFFER_SIZE = 23
+    TIMEOUT = 200.0
+    MYGROUP = 'fe80::42a3:6bff:fec1:571b%apcli0' #adres IP oniona glownego
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.addrinfo = socket.getaddrinfo(self.MYGROUP, self.MYPORT, socket.AF_INET6, socket.SOCK_DGRAM)
+        print self.addrinfo
+        (family, socktype, proto, canonname, sockaddr) = self.addrinfo[0]
+        self.socket = socket.socket(family, socktype, proto)
+        self.ser = serial.Serial('/dev/ttyS1')
+
+    def run(self):
+        data = 'struct57812Maszynownia0' #nazwa oniona, struct i 5 cyfr w zasadzie sa bez znaczenia, wazna jest nazwa - bedzie wyswietlana na ekranie. 
+                                         #Musi byc dopelniona zerami do BUFFER_SIZE.
+        self.socket.sendto(data, (self.addrinfo[0][4][0], self.MYPORT, 0, self.addrinfo[0][4][3]))
+        data = '000000%|000degC|0000000' #jednostki, na razie jest miejsce na 3 wartosci (zmienie to potem ofc). 
+                                         #Kazda jednostka moze miec do 7 znakow i jest dopelniana z przodu zerami do 7.
+        self.socket.sendto(data, (self.addrinfo[0][4][0], self.MYPORT, 0, self.addrinfo[0][4][3]))
+        while 1:
+            rdBytes = self.ser.read(self.BUFFER_SIZE)
+            self.socket.sendto(rdBytes, (self.addrinfo[0][4][0], self.MYPORT, 0, self.addrinfo[0][4][3]))
+            print rdBytes
+        self.socket.close()
+
+if __name__ == '__main__':
+    time.sleep(60)
+    client = socket_client()
+    client.start()
