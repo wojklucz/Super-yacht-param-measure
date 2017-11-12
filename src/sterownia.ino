@@ -91,8 +91,9 @@ void loop() {
         }
     }
   }
-  if (Serial.available() > 0)
-  {
+  //--------------------------------WAŻNE---------------------------------
+  if (Serial.available() > 0) //odczytaj dane z portu szeregowego.
+  { // W zasadzie możecie skopiować do swoich programów, tylko usuńcie printLCD().
     char c = char(Serial.read());
     if (c == '!')
     {
@@ -105,6 +106,7 @@ void loop() {
       dane += c;
     }
   }
+  //----------------------------------------------------------------------
   if (millis() - timeSinceLastRead >= 5000)
   {
     timeSinceLastRead = millis();
@@ -129,9 +131,9 @@ void loop() {
     }
   }
 }
-
-void readData(String dane)
-{
+//--------------------------------WAŻNE---------------------------------
+void readData(String dane) //pierwszy znak to kod rozkazu -  wybierz sobie jakiś niezajęty numer i napisz kod obsługi rozkazu
+{ // napisz w doc/kody rozkazów kod i opis funkcji
   int i = 0;
   i = getValue(dane, '|', 0).toInt();
   if (i == 999)
@@ -148,6 +150,7 @@ void readData(String dane)
     data[i][j] = getValue(dane, '|', j+1);
   }
 }
+//----------------------------------------------------------------------
 
 String getValue(String data, char separator, int index)
 {
