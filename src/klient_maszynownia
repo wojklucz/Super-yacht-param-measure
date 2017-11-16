@@ -1,0 +1,45 @@
+import threading
+import socket
+import os.path
+import serial
+import time
+
+class socket_client(threading.Thread):
+    MYPORT = 50000
+    COMM_PORT = 50001
+    BUFFER_SIZE = 31
+    COMM_BUFFER_SIZE = 28
+    TIMEOUT = 200.0
+    SERVGROUP = 'fe80::42a3:6bff:fec1:571b%apcli0'
+    MYGROUP = 'fe80::40a3:6bff:fe01:56f7%apcli0'
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.addrinfo = socket.getaddrinfo(self.MYGROUP, self.COMM_PORT, socket.AF_INET6, socket.SOCK_DGRAM)
+        print self.addrinfo
+        (family, socktype, proto, canonname, sockaddr) = self.addrinfo[0]
+        self.socket = socket.socket(family, socktype, proto)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind(("", self.COMM_PORT))
+        self.ser = serial.Serial('/dev/ttyS1')
+
+    def run(self):
+        fo = open("commands.txt", "rw+")
+        for line in fo.readlines():
+            self.ser.write(line)
+        data = 'struct57813Maszynownia000000000' #nazwa oniona
+        self.socket.sendto(data, (self.SERVGROUP, self.MYPORT, 0, self.addrinfo[0][4][3]))
+        data = '000000%|000degC|0mW/cm2|0000000' #jednostki
+        self.socket.sendto(data, (self.SERVGROUP, self.MYPORT, 0, self.addrinfo[0][4][3]))
+        while 1:
+            rdBytes = self.ser.read(self.BUFFER_SIZE)
+            self.socket.sendto(rdBytes, (self.SERVGROUP, self.MYPORT, 0, self.addrinfo[0][4][3]))
+            print rdBytes
+            command = self.socket.recv(self.COMM_BUFFER_SIZE)
+            self.ser.write(command)
+        self.socket.close()
+
+if __name__ == '__main__':
+    #time.sleep(60)
+    client = socket_client()
+    client.start()
