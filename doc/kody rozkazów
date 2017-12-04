@@ -2,3 +2,4 @@
 721 - ustawienie wymiarów zbiornika wody pitnej
 722 - ustawienie współrzędnych nakrętki zbiornika wody pitnej w płaszczyźnie OXY (osie równoległe do osi akcelerometru, początek układu
       współrzędnych przesunięty tak, aby cały zbiornik znajdował się w I ćwiartce, a jego krawędzie na osiach - tzn. lewy dolny róg)
+121 - rozkaz do RSU o ponowne przesłanie początkowych danych identyfikacyjnych (numer, nazwa, jednostki)
