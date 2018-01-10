@@ -1,0 +1,77 @@
+import threading
+import socket
+import os.path
+import serial
+import struct
+import client_data
+
+class socket_server(threading.Thread):
+    PORT = 50000
+    COMM_PORT = 50001
+    BUFFER_SIZE = 31
+    COMM_BUFFER_SIZE = 28
+    TIMEOUT = 200.0
+    MYGROUP = 'fe80::42a3:6bff:fec1:571b%eth0'
+    index = 0
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.addrinfo = socket.getaddrinfo(self.MYGROUP, self.PORT, socket.AF_INET6, socket.SOCK_DGRAM)
+        print self.addrinfo
+        (family, socktype, proto, canonname, sockaddr) = self.addrinfo[0]
+        self.socket = socket.socket(family, socktype, proto)
+        #self.socket.settimeout(self.TIMEOUT)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind(("", self.PORT))
+        self.ser = serial.Serial('/dev/ttyS1')
+        self.clients = []
+        self.clientsaddr = {}
+        self.clientnames = {}
+        self.clientdatastrings = {}
+        #group_bin = socket.inet_pton(self.addrinfo[0], self.addrinfo[4][0])
+        #mreq = group_bin + struct.pack('@I',0)
+        #mreq = struct.pack("4sl", socket.inet_aton('225.0.0.250'), socket.INADDR
+        #self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq
+
+    def run(self):
+        while 1:
+            data, addr = self.socket.recvfrom(self.BUFFER_SIZE)
+            if not addr in self.clientsaddr.keys():
+                if data[0]!='s':
+                   command = "100|000.000|000.000|000.000!"
+                   self.socket.sendto(command,addr)
+                   continue
+                self.clientsaddr[addr] = data[6:10]
+                self.clientdatastrings[addr] = data[10]
+                self.clientnames[addr] = data[11:].replace("0", "")
+            elif client_data.findClient(self.clients, self.clientsaddr[addr]) is None:
+                dataStruct = data
+                self.clients.append(client_data.client_data(addr, self.clientsaddr[addr], self.index, dataStruct))
+                self.index = self.index+1
+                datatowrite = "999|" + self.clientnames[addr] + "|" + self.clientdatastrings[addr] + "!"
+                print datatowrite
+                self.ser.write(datatowrite)
+            else:
+                try:
+                    clientToUpdate = client_data.findClient(self.clients, self.clientsaddr[addr])
+                    clientToUpdate.update_client(data)
+                    datatowrite = str(clientToUpdate.ind) + "|"
+                    for i in range(0, len(clientToUpdate.vals)):
+                        datatowrite = datatowrite + clientToUpdate.vals[i] + clientToUpdate.units[i] + "|"
+                    datatowrite = datatowrite[:-1] + "!"
+                    print datatowrite
+                    self.ser.write(datatowrite)
+                    print addr
+                    command = self.ser.read(self.COMM_BUFFER_SIZE)
+                    #command = "000|000.000|000.000|000.000!"
+                    print command
+                    self.socket.sendto(command, addr)
+                except:
+                    pass
+
+        self.socket.close()
+
+
+if __name__ == '__main__':
+    server = socket_server()
+    server.start()

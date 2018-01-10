@@ -1,0 +1,60 @@
+import threading
+import socket
+import os.path
+import serial
+import time
+
+class socket_client(threading.Thread):
+    MYPORT = 50000
+    COMM_PORT = 50001
+    BUFFER_SIZE = 31
+    COMM_BUFFER_SIZE = 28
+    TIMEOUT = 200.0
+    SERVGROUP = 'fe80::42a3:6bff:fec1:571b%eth0'
+    MYGROUP = 'fe80::42a3:6bff:fec1:54d7%eth0'
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.addrinfo = socket.getaddrinfo(self.MYGROUP, self.COMM_PORT, socket.AF_INET6, socket.SOCK_DGRAM)
+        print self.addrinfo
+        (family, socktype, proto, canonname, sockaddr) = self.addrinfo[0]
+        self.socket = socket.socket(family, socktype, proto)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind(("", self.COMM_PORT))
+        self.ser = serial.Serial('/dev/ttyS1')
+        self.socket.settimeout(1.0)
+
+    def run(self):
+        with open('/root/source/commands.txt', 'r') as myfile:
+            data = myfile.read()
+            self.ser.write(data)
+        self.sendInitData()
+        while 1:
+            rdBytes = self.ser.read(self.BUFFER_SIZE)
+            self.socket.sendto(rdBytes, (self.SERVGROUP, self.MYPORT, 0, self.addrinfo[0][4][3]))
+            text_file = open("commands.txt", "w")
+            text_file.write("721|"+rdBytes[16:23]+"!")
+            text_file.close()
+            print rdBytes
+            try:
+                command = self.socket.recv(self.COMM_BUFFER_SIZE)
+                print command
+                if command[0]=='1':
+                    self.sendInitData()
+				else:
+					self.ser.write(command)
+            except:
+                pass
+        self.socket.close()
+
+    def sendInitData(self):
+        data = 'struct54D54Batria0000000000000' #nazwa oniona
+        self.socket.sendto(data, (self.SERVGROUP, self.MYPORT, 0, self.addrinfo[0][4][3]))
+        data = '000000V|000000A|00000Wh|000000%' #jednostki
+        self.socket.sendto(data, (self.SERVGROUP, self.MYPORT, 0, self.addrinfo[0][4][3]))
+
+
+if __name__ == '__main__':
+    #time.sleep(60)
+    client = socket_client()
+    client.start()
