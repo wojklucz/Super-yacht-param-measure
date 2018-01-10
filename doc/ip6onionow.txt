@@ -1,0 +1,4 @@
+zbiornik fe80::42a3:6bff:fec1:50f3%4
+bateria fe80::42a3:6bff:fec1:54d7%4
+env fe80::42a3:6bff:fec1:56f9%4
+serwer fe80::42a3:6bff:fec1:571b%4
