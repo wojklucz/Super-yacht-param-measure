@@ -311,7 +311,7 @@ void redrawWykres(int hr, int id)
         case 2:
           drawWykres(30, 0, plotDataV, ILI9340_RED, 0, (bugFulBat ? batNr/24 : 1));
           drawWykres(50, -50, plotDataI, ILI9340_GREEN, 1, (bugFulBat ? batNr/24 : 1));
-          drawWykres(150, -150, plotDataPow, ILI9340_YELLOW, 2, (bugFulBat ? batNr/24 : 1));
+          drawWykres(100, 0, plotDataPow, ILI9340_YELLOW, 2, (bugFulBat ? batNr/24 : 1));
           break;
       }
       break;
@@ -355,7 +355,7 @@ void wykresScreen(int hr, int id)
       tft.println("Prad");
       tft.setCursor(0, 60);
       tft.setTextColor(ILI9340_YELLOW);
-      tft.println("Moc");
+      tft.println("Stan");
       break;
   }
   
@@ -442,8 +442,8 @@ void readData(String dane)
           plotDataV[(batNr)/24] = toPix(30, 0, data[i][j].substring(0,6).toFloat());
         else if (j == 1)
           plotDataI[(batNr)/24] = toPix(50, -50, data[i][j].substring(0,6).toFloat());
-        else if (j == 2)
-          plotDataPow[(batNr)/24] = toPix(150, -150, data[i][j].substring(0,6).toFloat());
+        else if (j == 3)
+          plotDataPow[(batNr)/24] = toPix(100, 0, data[i][j].substring(0,6).toFloat());
       }
     }
   }
