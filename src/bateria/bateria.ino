@@ -9,6 +9,8 @@
 #define VOLT_MEAS_TOLERANCE 0.1
 #define GATE_PIN 8
 #define MILIS_IN_MINUTE 60000
+#define V_CUTOFF_ALKALINE_9V 1
+#define V_CUTOFF_24V_BATTERY 2*11
 
 int sumA0 = 0;
 int sumA2 = 0;
@@ -37,6 +39,7 @@ void setup() {
   Serial.begin(9600);
 
   batteryMax = 0.5 * 9;
+  batteryStatus = batteryMax;
   pinMode(GATE_PIN,OUTPUT);
   digitalWrite(GATE_PIN, LOW);
 }
@@ -105,7 +108,7 @@ void loop() {
     {
       if(gateClosed)
       {
-        if(voltageA0 < 7)
+        if(voltageA0 < V_CUTOFF_ALKALINE_9V)
         {
           measureCapacity = false;
         }
@@ -124,7 +127,7 @@ void loop() {
           lastMeasureVoltageTime = millis();
           digitalWrite(GATE_PIN, LOW);
           gateClosed = true;
-          delay(1000);
+          delay(MILIS_IN_MINUTE);
         }
       }
       
