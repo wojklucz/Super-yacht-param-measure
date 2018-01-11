@@ -143,7 +143,7 @@ void sendData()
   curr = String(amperageA2, 3);
   while (curr.length() < 7) curr = "0" + curr;
 
-  cap = String(batteryMax, 3);
+  cap = String(batteryMax, 1);
   while (cap.length() < 7) cap = "0" + cap;
 
   double statubat = batteryStatus / batteryMax *100;
