@@ -19,6 +19,8 @@ class client_data():
             if val == "xxx.xxx":
                 continue
             #val = val.strip("0")
+            while val[0]=='0' and val[1]!='.':
+                val = val[1:]
             vals.append(val)
         self.vals = vals
 
